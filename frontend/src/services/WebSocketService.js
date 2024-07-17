@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useState } from 'react';
 
 const WebSocketContext = createContext(null);
 
@@ -58,8 +58,23 @@ export const WebSocketProvider = ({ children }) => {
     }
   };
 
+  const sendMessage = (senderId, targetUserId, content) => {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      const message = {
+        type: 'privateMessage',
+        senderId,
+        targetUserId,
+        content,
+      };
+      socket.send(JSON.stringify(message));
+    } else {
+      console.error('WebSocket no está abierto');
+    }
+  };
+  
+
   return (
-    <WebSocketContext.Provider value={{ socket, isAuthenticated, connectedUsers, authenticate, disconnect }}>
+    <WebSocketContext.Provider value={{ socket, isAuthenticated, connectedUsers, authenticate, disconnect, sendMessage }}>
       {children}
     </WebSocketContext.Provider>
   );

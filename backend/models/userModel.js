@@ -21,21 +21,12 @@ async function findUserByEmail(email) {
 
 async function getUserById(id) {
   return await prisma.user.findUnique({
-    where: {id : id}
+    where: {id : id},
+    select: {
+      id: true,
+      name: true,
+    }
   })
-}
-
-async function updateConnectionStatus(id, status){
-  return await prisma.user.update({
-    where: { id },
-    data: { isConnected: status },
-  });
-}
-
-async function getUserByConnection(){
-  return await prisma.user.findMany({
-    where: { isConnected: true },
-  });
 }
 
 module.exports = { createUser, findUserByEmail, getUserById };

@@ -1,19 +1,26 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from 'react';
-import io from 'socket.io-client';
-import SideBar from '@/components/SideBar';
+import React, { useState } from "react";
+import SideBar from "@/components/SideBar";
+import Welcome from "@/components/welcome";
+import ChatArea from "@/components/chatArea";
 
+export default function App() {
+  const [selectedUser, setSelectedUser] = useState(null);
 
-const Home = () => {
-    return (
-        <div className="flex">
-            <SideBar />
-            <div className="flex-1 p-4">
-                {/* Resto del contenido de tu aplicación */}
-            </div>
+  return (
+    <div className="flex h-screen">
+      <SideBar onSelectedUser={setSelectedUser} />
+      <div className="flex flex-col flex-1">
+        <div className="flex flex-col flex-1 overflow-hidden">
+        {selectedUser ? (
+          <ChatArea user={selectedUser} />
+        ) : (
+          <Welcome />
+        )}
         </div>
-    );
-};
+      </div>
+    </div>
+  );
+}
 
-export default Home;

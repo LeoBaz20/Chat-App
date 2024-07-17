@@ -1,20 +1,29 @@
-import React from "react";
-import { useState, useEffect } from "react";
+"use client";
+
+import React, { useState } from "react";
 import {
   Card,
   List,
   ListItem,
   Typography,
   Button,
+  IconButton,
+  Badge,
+  Avatar,
 } from "@material-tailwind/react";
-import { UserCircleIcon } from "@heroicons/react/24/solid";
-import { logout } from "@/utils/auth";
+import {
+  UserCircleIcon,
+  Bars3Icon,
+  XMarkIcon,
+} from "@heroicons/react/24/solid";
+import { getUserFromToken, logout } from "@/utils/auth";
 import { useRouter } from "next/navigation";
 import { useWebSocket } from "@/services/WebSocketService";
 
-export function SideBar() {
+export function SideBar({ onSelectedUser }) {
   const router = useRouter();
   const { disconnect, connectedUsers } = useWebSocket();
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const handleLogout = () => {
     logout();
@@ -23,38 +32,73 @@ export function SideBar() {
     console.log("Sesión cerrada");
   };
 
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
+
+  console.log(connectedUsers);
+
+  const LoggedUser = getUserFromToken();
+  const filteredUsers = connectedUsers.filter(
+    (connectedUser) => connectedUser.id !== LoggedUser.userId
+  );
+
   return (
-    <Card className="h-screen w-full max-w-[20rem] bg-regal-blue p-0 shadow-xl rounded-none shadow-blue-gray-900/5">
-      <div className="p-4 text-center">
-        <h1 className="text-2xl font-bold text-white">CHAT-APP</h1>
-      </div>
-      <List className="relative">
-        {connectedUsers.map((user, index) => (
-          <ListItem
-            key={index}
-            className="relative flex items-center px-4 py-2 text-white border-b border-gray-700"
-          >
-            <UserCircleIcon className="w-12 h-12 mr-2 text-white" />
-            <div className="flex-1">
-              <Typography className="font-semibold text-white">
-                {user.name}
-              </Typography>
-              <Typography className="text-sm text-gray-400">
-                {user ? "Conectado" : "Desconectado"}
-              </Typography>
-            </div>
-            {user && (
-              <span className="absolute block w-3 h-3 transform -translate-y-1/2 bg-green-400 rounded-full top-1/2 right-4" />
+    <div className="flex h-screen">
+      <Card
+        className={`relative h-full bg-main border-blue-gray-800 p-0 shadow-xl rounded-none transition-transform transform ${
+          isSidebarOpen ? "translate-x-0" : "-translate-x-44"
+        } lg:translate-x-0 lg:w-full lg:max-w-[20rem]`}
+      >
+        <div className="flex items-center justify-between p-4 text-center">
+          <h1 className="text-2xl font-bold text-white">CHAT-APP</h1>
+          <IconButton onClick={toggleSidebar} className="lg:hidden">
+            {isSidebarOpen ? (
+              <XMarkIcon className="w-6 h-6 text-white" />
+            ) : (
+              <Bars3Icon className="w-6 h-6 text-white" />
             )}
-          </ListItem>
-        ))}
-      </List>
-      <div className="absolute w-full p-4 bottom-4">
-        <Button onClick={handleLogout} color="red" className="w-full">
-          Cerrar Sesión
-        </Button>
+          </IconButton>
+        </div>
+        <List className="relative">
+          {filteredUsers.map((user, index) => (
+            <ListItem
+              key={index}
+              className="relative flex items-center px-4 py-2 text-white border-gray-700 rounded-none hover:bg-gray-700 focus:bg-blue-500"
+              onClick={() => onSelectedUser(user)}
+            >
+              <Badge
+                placement="bottom-end"
+                overlap="circular"
+                color="green"
+                withBorder
+              >
+                <UserCircleIcon className="w-12 h-12"/>
+              </Badge>
+              <div className="flex-1 ml-3">
+                <Typography className="font-semibold text-white">
+                  {user.name}
+                </Typography>
+                <Typography className="text-sm text-gray-400">
+                  {user ? "Conectado" : "Desconectado"}
+                </Typography>
+              </div>
+            </ListItem>
+          ))}
+        </List>
+        <div className="absolute w-full p-4 bottom-4">
+          <Button onClick={handleLogout} color="red" className="w-full">
+            Cerrar Sesión
+          </Button>
+        </div>
+      </Card>
+      <div
+        className={`flex-1 transition-transform duration-300 ${
+          isSidebarOpen ? "ml-64" : "ml-0"
+        }`}
+      >
       </div>
-    </Card>
+    </div>
   );
 }
 
