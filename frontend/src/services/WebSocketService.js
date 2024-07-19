@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
+import { getToken } from '@/utils/auth';
 
 const WebSocketContext = createContext(null);
 
@@ -8,45 +9,71 @@ export const WebSocketProvider = ({ children }) => {
   const [socket, setSocket] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [connectedUsers, setConnectedUsers] = useState([]);
+  const [messages, setMessages] = useState([]);
+
+  useEffect(() => {
+    const token = getToken();
+    if (token && !socket) {
+      authenticate(token);
+    }
+    return disconnect;
+  }, []);
 
   const authenticate = (token) => {
     const wsUrl = 'ws://localhost:3002';
-    const socket = new WebSocket(wsUrl);
+    const newSocket = new WebSocket(wsUrl);
 
-    socket.onopen = () => {
+    newSocket.onopen = () => {
       console.log('Conectado al WebSocket');
       const authMessage = JSON.stringify({
         type: 'authenticate',
         token: token,
       });
-      socket.send(authMessage);
+      newSocket.send(authMessage);
     };
 
-    socket.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'authenticated') {
-        console.log('Autenticado correctamente:', message.message);
-        setIsAuthenticated(true);
-      } else if (message.type === 'error') {
-        console.error('Error:', message.message);
-      } else if (message.type === 'connectedUsers') {
-        setConnectedUsers(message.users);
-      } else {
-        console.log('Mensaje del servidor:', message);
-      }
-    };
+    newSocket.onmessage = handleIncomingMessage;
 
-    socket.onclose = () => {
+    newSocket.onclose = () => {
       console.log('Desconectado del WebSocket');
       setIsAuthenticated(false);
       setConnectedUsers([]);
     };
 
-    socket.onerror = (error) => {
+    newSocket.onerror = (error) => {
       console.error('Error en WebSocket:', error);
     };
 
-    setSocket(socket);
+    if (socket) {
+      socket.close();
+    }
+
+    setSocket(newSocket);
+  };
+
+  const handleIncomingMessage = (event) => {
+    const message = JSON.parse(event.data);
+    switch (message.type) {
+      case 'authenticated':
+        console.log('Autenticado correctamente:', message.message);
+        setIsAuthenticated(true);
+        break;
+      case 'error':
+        console.error('Error:', message.message);
+        break;
+      case 'connectedUsers':
+        setConnectedUsers(message.users);
+        break;
+      case 'privateMessage':
+        setMessages((prevMessages) => [
+          ...prevMessages,
+        { from: message.from, content: message.content, timestamp: message.timestamp }, // Incluir timestamp en el estado local
+        ]);
+        break;
+      default:
+        console.log('Mensaje del servidor:', message);
+        break;
+    }
   };
 
   const disconnect = () => {
@@ -65,16 +92,36 @@ export const WebSocketProvider = ({ children }) => {
         senderId,
         targetUserId,
         content,
+        timestamp: new Date().toISOString()  // Agregar timestamp actual
       };
       socket.send(JSON.stringify(message));
+      
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { from: senderId, content, timestamp: message.timestamp },  // Agregar timestamp a los mensajes locales
+      ]);
     } else {
       console.error('WebSocket no está abierto');
     }
   };
-  
+
+  const clearMessages = () => {
+    setMessages([]);
+  };
+
+  const contextValue = {
+    socket,
+    isAuthenticated,
+    connectedUsers,
+    messages,
+    authenticate,
+    disconnect,
+    sendMessage,
+    clearMessages,
+  };
 
   return (
-    <WebSocketContext.Provider value={{ socket, isAuthenticated, connectedUsers, authenticate, disconnect, sendMessage }}>
+    <WebSocketContext.Provider value={contextValue}>
       {children}
     </WebSocketContext.Provider>
   );

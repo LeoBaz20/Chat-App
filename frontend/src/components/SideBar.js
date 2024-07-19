@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Card,
   List,
@@ -16,7 +16,7 @@ import {
   Bars3Icon,
   XMarkIcon,
 } from "@heroicons/react/24/solid";
-import { getUserFromToken, logout } from "@/utils/auth";
+import { getUserFromToken, logout, getToken } from "@/utils/auth";
 import { useRouter } from "next/navigation";
 import { useWebSocket } from "@/services/WebSocketService";
 
@@ -25,10 +25,11 @@ export function SideBar({ onSelectedUser }) {
   const { disconnect, connectedUsers } = useWebSocket();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
+
   const handleLogout = () => {
     logout();
     disconnect();
-    router.push("/");
+    router.push("/login");
     console.log("Sesión cerrada");
   };
 
@@ -36,17 +37,22 @@ export function SideBar({ onSelectedUser }) {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
-  console.log(connectedUsers);
-
   const LoggedUser = getUserFromToken();
-  const filteredUsers = connectedUsers.filter(
-    (connectedUser) => connectedUser.id !== LoggedUser.userId
-  );
+  const filteredUsers = connectedUsers.filter((connectedUser) => {
+    // Verifica si LoggedUser es nulo o undefined
+    if (!LoggedUser || LoggedUser.userId == null) {
+      // Si LoggedUser o userId es nulo, retorna true para mantener todos los usuarios
+      return true;
+    }
+    // Filtra usuarios normalmente si LoggedUser.userId no es nulo
+    return connectedUser.id !== LoggedUser.userId;
+  });
+  
 
   return (
     <div className="flex h-screen">
       <Card
-        className={`relative h-full bg-main border-blue-gray-800 p-0 shadow-xl rounded-none transition-transform transform ${
+        className={`relative h-full bg-main border-r border-blue-gray-800 p-0 shadow-xl rounded-none transition-transform transform ${
           isSidebarOpen ? "translate-x-0" : "-translate-x-44"
         } lg:translate-x-0 lg:w-full lg:max-w-[20rem]`}
       >
@@ -64,7 +70,7 @@ export function SideBar({ onSelectedUser }) {
           {filteredUsers.map((user, index) => (
             <ListItem
               key={index}
-              className="relative flex items-center px-4 py-2 text-white border-gray-700 rounded-none hover:bg-gray-700 focus:bg-blue-500"
+              className="relative flex items-center px-4 py-2 text-white rounded-none border-blue-gray-800 hover:bg-gray-700 focus:bg-blue-500"
               onClick={() => onSelectedUser(user)}
             >
               <Badge
@@ -84,6 +90,7 @@ export function SideBar({ onSelectedUser }) {
                 </Typography>
               </div>
             </ListItem>
+          
           ))}
         </List>
         <div className="absolute w-full p-4 bottom-4">

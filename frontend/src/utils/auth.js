@@ -1,11 +1,17 @@
+
 import { jwtDecode } from 'jwt-decode';
 
 export const setToken = (token) => {
-  localStorage.setItem('token', token);
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('token', token);
+  }
 };
 
 export const getToken = () => {
-  return localStorage.getItem('token');
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('token');
+  }
+  return null;
 };
 
 export const getUserFromToken = () => {
@@ -17,9 +23,11 @@ export const getUserFromToken = () => {
 };
 
 export const decodeToken = (token) => {
-    return jwtDecode(token);
-  };
+  return jwtDecode(token);
+};
 
 export const logout = () => {
-  localStorage.removeItem('token');
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('token');
+  }
 };

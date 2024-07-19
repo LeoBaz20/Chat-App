@@ -7,74 +7,56 @@ import { useWebSocket } from "@/services/WebSocketService";
 import { getUserFromToken } from "@/utils/auth";
 
 export function ChatArea({ user }) {
-  const { sendMessage, socket } = useWebSocket();
+  const { sendMessage, messages, clearMessages } = useWebSocket();
   const [messageContent, setMessageContent] = useState('');
-  const [messages, setMessages] = useState([]);
   const LoggedUser = getUserFromToken();
 
   useEffect(() => {
-    setMessages([]); // Limpiar mensajes cuando cambia el usuario
+    clearMessages(); // Limpiar el campo de entrada al cambiar de usuario
   }, [user]);
 
   const handleSend = () => {
     if (messageContent.trim()) {
-      // Enviar el mensaje con senderId y receiverId
       sendMessage(LoggedUser.userId, user.id, messageContent);
-  
-      // Agregar el mensaje enviado al estado local
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { from: LoggedUser.userId, content: messageContent },
-      ]);
-  
-      setMessageContent(''); // Limpiar el campo de entrada
+      setMessageContent('');
     }
   };
 
-  useEffect(() => {
-    const handleIncomingMessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.type === 'privateMessage') {
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { from: message.from, content: message.content },
-        ]);
-      }
-    };
-
-    if (socket) {
-      socket.addEventListener('message', handleIncomingMessage);
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
     }
-
-    return () => {
-      if (socket) {
-        socket.removeEventListener('message', handleIncomingMessage);
-      }
-    };
-  }, [socket]);
+  };
 
   return (
     <div className="flex flex-col w-full h-screen">
-      <Navbar color="bg-main" className="flex items-center px-4 py-2 mx-auto border-l rounded-none border-blue-gray-800 bg-main max-w-screen-3xl lg:px-8 lg:py-4">
+      <Navbar color="bg-main" className="flex items-center px-4 py-2 mx-auto rounded-none border-blue-gray-800 bg-main max-w-screen-3xl lg:px-8 lg:py-4">
         <UserCircleIcon className="w-10 h-10 mr-2 text-white" />
         <span className="text-lg text-white">{user.name}</span>
       </Navbar>
-      <div className="flex flex-col flex-1 h-auto p-4 overflow-y-auto border border-blue-gray-900 bg-main">
-        {/* Mostrar mensajes */}
-        {messages.map((msg, index) => (
-          <div key={index} className={`flex justify-${msg.from === LoggedUser.userId ? 'end' : 'start'} mb-2`}>
-            <div className={`p-2 text-white rounded-lg ${msg.from === LoggedUser.userId ? 'bg-blue-500' : 'bg-gray-700'}`}>
-              {msg.content}
-            </div>
-          </div>
-        ))}
+      <div className="flex flex-col flex-1 h-auto p-8 overflow-y-auto border-t border-b border-blue-gray-900 bg-main">
+  {/* Mostrar mensajes */}
+  {messages.map((msg, index) => (
+    <div key={index} className={`flex justify-${msg.from === LoggedUser.userId ? 'end' : 'start'} mb-2`}>
+      <div className={`flex flex-col max-w-md rounded-lg ${msg.from === LoggedUser.userId ? 'bg-blue-500 text-white self-end' : 'bg-gray-700 text-white self-start'}`}>
+        <p className="p-2">{msg.content}</p>
       </div>
+      <br/>
+      <span className={`text-xs text-gray-400 mt-1 ml-2 self-end`}>
+        {new Date(msg.timestamp).toLocaleTimeString()}
+      </span>
+    </div>
+  ))}
+</div>
 
-      <div className="flex flex-row items-center w-full gap-2 p-2 border-l bg-main border-blue-gray-800">
+
+      <div className="flex flex-row items-center w-full gap-2 p-2 bg-main">
         <Textarea
           rows={1}
           value={messageContent}
           onChange={(e) => setMessageContent(e.target.value)}
+          onKeyDown={handleKeyDown}
           resize={false}
           placeholder="Your Message"
           className="min-h-full text-white !border-0 focus:border-blue-500"

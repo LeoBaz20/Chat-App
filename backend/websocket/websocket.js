@@ -5,6 +5,7 @@ const jwt = require('jsonwebtoken');
 
 let connectedUsers = [];
 
+
 const broadcastConnectedUsers = () => {
   const users = connectedUsers.map(user => user.userInfo);
   connectedUsers.forEach(({ ws }) => {
@@ -37,7 +38,8 @@ const handlePrivateMessage = (ws, message) => {
     return;
   }
 
-  const { senderId, targetUserId, content } = message;
+  const { senderId, targetUserId, content, timestamp } = message; 
+
   const receiver = connectedUsers.find(user => user.userInfo.id === targetUserId);
 
   if (receiver) {
@@ -45,6 +47,7 @@ const handlePrivateMessage = (ws, message) => {
       type: 'privateMessage',
       from: senderId,
       content: content,
+      timestamp: timestamp, 
     }));
   }
 };

@@ -33,7 +33,7 @@ const LoginForm = () => {
       const data = await response.json();
       setToken(data.token);  // Guardar el token en localStorage
       authenticate(data.token);  // Autenticar con WebSocket
-      router.push("/home");
+      router.push("/");
 
     } catch (error) {
       setError("Tu correo o contraseña están incorrectos.");
