@@ -53,7 +53,7 @@ export function RegisterForm() {
         });
   
         const data = await response.json();
-  
+        console.log(formValues);
         if (!response.ok) {
           throw new Error(data.error || 'Error al registrar el usuario');
         }
@@ -72,7 +72,7 @@ export function RegisterForm() {
 
 
   return (
-    <section className="grid text-center h-screen items-center p-8"
+    <section className="grid items-center h-screen p-8 text-center"
     style={{
       background: "linear-gradient(180deg, #1B2838, #152a3e)", // Degradado de colores
     }}
@@ -90,7 +90,7 @@ export function RegisterForm() {
             <label htmlFor="name">
               <Typography
                 variant="small"
-                className="mb-2 block font-medium font-bold text-gray-900"
+                className="block mb-2 font-bold text-gray-900"
               >
                 Nombre
               </Typography>
@@ -118,7 +118,7 @@ export function RegisterForm() {
             <label htmlFor="email">
               <Typography
                 variant="small"
-                className="mb-2 block font-medium font-bold text-gray-900"
+                className="block mb-2 font-bold text-gray-900"
               >
                 Email
               </Typography>
@@ -146,7 +146,7 @@ export function RegisterForm() {
             <label htmlFor="password">
               <Typography
                 variant="small"
-                className="mb-2 block font-medium font-bold text-gray-900"
+                className="block mb-2 font-bold text-gray-900"
               >
                 Contraseña
               </Typography>
@@ -166,9 +166,9 @@ export function RegisterForm() {
               icon={
                 <i onClick={togglePasswordVisiblity}>
                   {passwordShown ? (
-                    <EyeIcon className="h-5 w-5" />
+                    <EyeIcon className="w-5 h-5" />
                   ) : (
-                    <EyeSlashIcon className="h-5 w-5" />
+                    <EyeSlashIcon className="w-5 h-5" />
                   )}
                 </i>
               }
@@ -181,7 +181,7 @@ export function RegisterForm() {
             <label htmlFor="confirmPassword">
               <Typography
                 variant="small"
-                className="mb-2 block font-medium font-bold text-gray-900"
+                className="block mb-2 font-bold text-gray-900"
               >
                 Confirmar Contraseña
               </Typography>
@@ -201,9 +201,9 @@ export function RegisterForm() {
               icon={
                 <i onClick={togglePasswordVisiblity}>
                   {passwordShown ? (
-                    <EyeIcon className="h-5 w-5" />
+                    <EyeIcon className="w-5 h-5" />
                   ) : (
-                    <EyeSlashIcon className="h-5 w-5" />
+                    <EyeSlashIcon className="w-5 h-5" />
                   )}
                 </i>
               }

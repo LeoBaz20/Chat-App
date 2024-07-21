@@ -29,4 +29,13 @@ async function getUserById(id) {
   })
 }
 
-module.exports = { createUser, findUserByEmail, getUserById };
+async function getAllUsers(){
+  return await prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+    }
+  })
+}
+
+module.exports = { createUser, findUserByEmail, getUserById, getAllUsers };

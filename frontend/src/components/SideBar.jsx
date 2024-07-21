@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   Card,
   List,
@@ -8,8 +8,7 @@ import {
   Typography,
   Button,
   IconButton,
-  Badge,
-  Avatar,
+  Badge
 } from "@material-tailwind/react";
 import {
   UserCircleIcon,
@@ -24,37 +23,76 @@ export function SideBar({ onSelectedUser }) {
   const router = useRouter();
   const { disconnect, connectedUsers } = useWebSocket();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [users, setUsers] = useState([]);
+  const LoggedUser = getUserFromToken();
+  useEffect(() => {
+    async function fetchUsers() {
+      const token = getToken();
 
+      if (!token) {
+        console.log("No token found");
+        return;
+      }
 
-  const handleLogout = () => {
+      try {
+        const response = await fetch('http://localhost:3002/api/users/getUsers', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log(data);
+          setUsers(data);
+        } else {
+          const errorData = await response.json();
+          console.log(errorData);
+        }
+      } catch (error) {
+        console.log("Failed to fetch users:", error);
+      }
+    }
+
+    fetchUsers();
+  }, []);
+
+  useEffect(() => {
+    const updatedUsers = users.map(user => ({
+      ...user,
+      isConnected: connectedUsers.some(connectedUser => connectedUser.id === user.id),
+    }));
+
+    if (JSON.stringify(updatedUsers) !== JSON.stringify(users)) {
+      setUsers(updatedUsers);
+    }
+  }, [connectedUsers, users]);
+
+  const handleLogout = useCallback(() => {
     logout();
     disconnect();
     router.push("/login");
     console.log("Sesión cerrada");
-  };
+  }, [disconnect, router]);
 
-  const toggleSidebar = () => {
-    setIsSidebarOpen(!isSidebarOpen);
-  };
+  const toggleSidebar = useCallback(() => {
+    setIsSidebarOpen((prevIsSidebarOpen) => !prevIsSidebarOpen);
+  }, []);
 
-  const LoggedUser = getUserFromToken();
-  const filteredUsers = connectedUsers.filter((connectedUser) => {
+  const filteredUsers = users.filter((user) => {
     // Verifica si LoggedUser es nulo o undefined
     if (!LoggedUser || LoggedUser.userId == null) {
       // Si LoggedUser o userId es nulo, retorna true para mantener todos los usuarios
       return true;
     }
     // Filtra usuarios normalmente si LoggedUser.userId no es nulo
-    return connectedUser.id !== LoggedUser.userId;
+    return user.id !== LoggedUser.userId;
   });
-  
 
   return (
     <div className="flex h-screen">
       <Card
-        className={`relative h-full bg-main border-r border-blue-gray-800 p-0 shadow-xl rounded-none transition-transform transform ${
-          isSidebarOpen ? "translate-x-0" : "-translate-x-44"
-        } lg:translate-x-0 lg:w-full lg:max-w-[20rem]`}
+        className="bg-main border-r border-blue-gray-800 p-0 shadow-xl rounded-none w-80"
       >
         <div className="flex items-center justify-between p-4 text-center">
           <h1 className="text-2xl font-bold text-white">CHAT-APP</h1>
@@ -70,27 +108,26 @@ export function SideBar({ onSelectedUser }) {
           {filteredUsers.map((user, index) => (
             <ListItem
               key={index}
-              className="relative flex items-center px-4 py-2 text-white rounded-none border-blue-gray-800 hover:bg-gray-700 focus:bg-blue-500"
+              className="relative flex items-center px-4 py-2 text-white rounded-none border-blue-gray-800 hover:bg-gray-500 focus:bg-blue-600"
               onClick={() => onSelectedUser(user)}
             >
               <Badge
                 placement="bottom-end"
                 overlap="circular"
-                color="green"
+                color={user.isConnected ? "green" : "gray"}
                 withBorder
               >
-                <UserCircleIcon className="w-12 h-12"/>
+                <UserCircleIcon className="w-12 h-12" />
               </Badge>
               <div className="flex-1 ml-3">
                 <Typography className="font-semibold text-white">
                   {user.name}
                 </Typography>
                 <Typography className="text-sm text-gray-400">
-                  {user ? "Conectado" : "Desconectado"}
+                  {user.isConnected ? "Conectado" : "Desconectado"}
                 </Typography>
               </div>
             </ListItem>
-          
           ))}
         </List>
         <div className="absolute w-full p-4 bottom-4">
@@ -103,8 +140,7 @@ export function SideBar({ onSelectedUser }) {
         className={`flex-1 transition-transform duration-300 ${
           isSidebarOpen ? "ml-64" : "ml-0"
         }`}
-      >
-      </div>
+      ></div>
     </div>
   );
 }

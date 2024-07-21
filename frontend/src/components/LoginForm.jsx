@@ -42,10 +42,7 @@ const LoginForm = () => {
 
 
   return (
-    <section className="grid items-center h-screen p-8 text-center"
-    style={{
-      background: "linear-gradient(180deg, #1B2838, #152a3e)", // Degradado de colores
-    }}>
+    <section className="grid items-center h-screen p-8 text-center bg-main">
 <div className="bg-white rounded-lg p-8 mx-auto max-w-[24rem]">
         <Typography variant="h3" color="blue-gray" className="mb-2">
           Iniciar Sesión

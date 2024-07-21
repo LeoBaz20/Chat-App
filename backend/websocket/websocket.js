@@ -1,7 +1,7 @@
 const { WebSocketServer } = require('ws');
 const { getUserById } = require('../models/userModel');
 const jwt = require('jsonwebtoken');
-
+const { savePrivateMessage} = require('../models/messagesModel');
 
 let connectedUsers = [];
 
@@ -32,24 +32,32 @@ const authenticateUser = async (ws, token) => {
   }
 };
 
-const handlePrivateMessage = (ws, message) => {
+const handlePrivateMessage = async (ws, message) => {
   if (!ws.userId) {
     ws.send(JSON.stringify({ type: 'error', message: 'Usuario no autenticado' }));
     return;
   }
 
-  const { senderId, targetUserId, content, timestamp } = message; 
+  const { senderId, receiverId, content, timestamp } = message; 
 
-  const receiver = connectedUsers.find(user => user.userInfo.id === targetUserId);
+  const receiver = connectedUsers.find(user => user.userInfo.id === receiverId);
 
   if (receiver) {
     receiver.ws.send(JSON.stringify({
       type: 'privateMessage',
       from: senderId,
+      to: receiverId,
       content: content,
       timestamp: timestamp, 
     }));
   }
+
+    // Guardar el mensaje en la base de datos
+    try {
+      await savePrivateMessage(senderId, receiverId, content, timestamp);
+    } catch (error) {
+      ws.send(JSON.stringify({ type: 'error', message: 'Error guardando el mensaje' }));
+    }
 };
 
 const setupWebSocket = (server) => {

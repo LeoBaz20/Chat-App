@@ -10,9 +10,9 @@ export const WebSocketProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [connectedUsers, setConnectedUsers] = useState([]);
   const [messages, setMessages] = useState([]);
+  const token = getToken();
 
   useEffect(() => {
-    const token = getToken();
     if (token && !socket) {
       authenticate(token);
     }
@@ -67,12 +67,34 @@ export const WebSocketProvider = ({ children }) => {
       case 'privateMessage':
         setMessages((prevMessages) => [
           ...prevMessages,
-        { from: message.from, content: message.content, timestamp: message.timestamp }, // Incluir timestamp en el estado local
+        { senderId: message.from, receiverId: message.to, content: message.content, timestamp: message.timestamp }, // Incluir timestamp en el estado local
         ]);
         break;
       default:
         console.log('Mensaje del servidor:', message);
         break;
+    }
+  };
+
+  const fetchMessages = async (senderId, targetUserId) => {
+    try {
+      const response = await fetch(`http://localhost:3002/api/messages/getMessages?senderId=${senderId}&targetUserId=${targetUserId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error fetching messages');
+      }
+  
+      const messages = await response.json();
+      setMessages(messages);
+    } catch (error) {
+      console.error(error);
+      alert('Error fetching messages');
     }
   };
 
@@ -85,12 +107,12 @@ export const WebSocketProvider = ({ children }) => {
     }
   };
 
-  const sendMessage = (senderId, targetUserId, content) => {
+  const sendMessage = (senderId, receiverId, content) => {
     if (socket && socket.readyState === WebSocket.OPEN) {
       const message = {
         type: 'privateMessage',
         senderId,
-        targetUserId,
+        receiverId,
         content,
         timestamp: new Date().toISOString()  // Agregar timestamp actual
       };
@@ -98,15 +120,31 @@ export const WebSocketProvider = ({ children }) => {
       
       setMessages((prevMessages) => [
         ...prevMessages,
-        { from: senderId, content, timestamp: message.timestamp },  // Agregar timestamp a los mensajes locales
+        { senderId, receiverId, content, timestamp: message.timestamp },  // Agregar timestamp a los mensajes locales
       ]);
     } else {
       console.error('WebSocket no está abierto');
     }
   };
 
-  const clearMessages = () => {
-    setMessages([]);
+  const clearMessages = async (senderId, targetUserId) => {
+    try {
+      const response = await fetch(`http://localhost:3002/api/messages/deleteMessages?senderId=${senderId}&targetUserId=${targetUserId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error deleting messages');
+      }
+      setMessages([]);
+    } catch (error) {
+      console.error(error);
+      alert('Error deleting messages');
+    }
   };
 
   const contextValue = {
@@ -118,6 +156,7 @@ export const WebSocketProvider = ({ children }) => {
     disconnect,
     sendMessage,
     clearMessages,
+    fetchMessages
   };
 
   return (
