@@ -20,7 +20,7 @@ export const WebSocketProvider = ({ children }) => {
   }, []);
 
   const authenticate = (token) => {
-    const wsUrl = 'ws://${}/8000';
+    const wsUrl = 'wss://${}/8000';
     const newSocket = new WebSocket(wsUrl);
 
     newSocket.onopen = () => {
