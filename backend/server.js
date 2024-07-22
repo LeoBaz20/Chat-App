@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const https = require('https');
+const http = require('http');
 const { setupWebSocket } = require('./websocket/websocket');
 const userRoutes = require('./routes/userRoutes');
 const messageRoutes = require('./routes/messageRoutes')
@@ -19,7 +19,7 @@ app.use(bodyParser.json());
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
 
-const server = https.createServer(app);
+const server = http.createServer(app);
 setupWebSocket(server);
 
 server.listen(port, () => {
