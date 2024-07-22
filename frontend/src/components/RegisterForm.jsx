@@ -53,7 +53,6 @@ export function RegisterForm() {
         });
   
         const data = await response.json();
-        console.log(formValues);
         if (!response.ok) {
           throw new Error(data.error || 'Error al registrar el usuario');
         }

@@ -19,7 +19,7 @@ app.use(bodyParser.json());
 app.use('/api/users', userRoutes);
 app.use('/api/messages', messageRoutes);
 
-const server = http.createServer(app);
+const server = https.createServer(app);
 setupWebSocket(server);
 
 server.listen(port, () => {
