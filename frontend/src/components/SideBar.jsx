@@ -35,7 +35,7 @@ export function SideBar({ onSelectedUser }) {
       }
 
       try {
-        const response = await fetch('http://localhost:3002/api/users/getUsers', {
+        const response = await fetch(`https://chat-app-8s32.onrender.com/8000/api/users/getUsers`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
