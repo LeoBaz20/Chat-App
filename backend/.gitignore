@@ -17,8 +17,7 @@
 *.pem
 
 # prisma
-/prisma
-
+/prisma/migrations
 # debug
 npm-debug.log*
 yarn-debug.log*
