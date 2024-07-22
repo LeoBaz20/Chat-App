@@ -2,11 +2,12 @@
   "name": "backend",
   "version": "1.0.0",
   "main": "index.js",
-  "scripts": {
-    "build": "npm install",
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node server.js"
-  },
+"scripts": {
+  "build": "npm install && npm run prisma:migrate",
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "start": "node server.js",
+  "prisma:migrate": "prisma migrate deploy"
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
