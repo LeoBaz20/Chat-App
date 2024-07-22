@@ -39,7 +39,7 @@ export function ChatArea({ user }) {
     if (LoggedUser?.userId && user) {
       fetchMessages(LoggedUser.userId, user.id);
     }
-  }, [LoggedUser, user, fetchMessages]);
+  }, [LoggedUser?.userId, user?.id]);
 
   useEffect(() => {
     // Desplazar automáticamente hacia el final cuando se renderizan nuevos mensajes
