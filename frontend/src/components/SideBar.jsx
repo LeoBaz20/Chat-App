@@ -35,7 +35,7 @@ export function SideBar({ onSelectedUser }) {
       }
 
       try {
-        const response = await fetch(`https://chat-app-tlfb.onrender.com/8000/api/users/getUsers`, {
+        const response = await fetch(`https://chat-app-tlfb.onrender.com/api/users/getUsers`, {
           headers: {
             'Authorization': `Bearer ${token}`,
           },
