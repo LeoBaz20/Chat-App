@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const http = require('http');
+const https = require('https');
 const { setupWebSocket } = require('./websocket/websocket');
 const userRoutes = require('./routes/userRoutes');
 const messageRoutes = require('./routes/messageRoutes')
