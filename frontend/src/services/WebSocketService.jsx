@@ -78,7 +78,7 @@ export const WebSocketProvider = ({ children }) => {
 
   const fetchMessages = async (senderId, targetUserId) => {
     try {
-      const response = await fetch(`https://chat-app-8s32.onrender.com/api/messages/getMessages?senderId=${senderId}&targetUserId=${targetUserId}`, {
+      const response = await fetch(`https://chat-app-tlfb.onrender.com/api/messages/getMessages?senderId=${senderId}&targetUserId=${targetUserId}`, {
         method: 'GET',
         headers: {
           'Authorization': `Bearer ${token}`,
